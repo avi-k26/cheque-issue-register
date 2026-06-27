@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheque Issue Register</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f0e8 0%, #ede8dc 50%, #e8e2d4 100%);
+            min-height: 100vh;
+            color: #2c2c2c;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a3a5c 0%, #2d5986 50%, #1a3a5c 100%);
+            padding: 12px 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-bottom: 3px solid #c8a94a;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 14px; }
+
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #c8a94a, #f0d080);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        .header-title-block h1 {
+            color: #f0d080; font-size: 20px; font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5); letter-spacing: 1px;
+        }
+
+        .header-title-block p { color: #a8c8e8; font-size: 11px; margin-top: 1px; }
+
+        .header-copyright {
+            text-align: center; color: rgba(200,169,74,0.7);
+            font-size: 10px; letter-spacing: 0.5px;
+            border-top: 1px solid rgba(200,169,74,0.2); padding-top: 6px;
+        }
+
+        .header-copyright span { color: #c8a94a; font-weight: 600; }
+
+        .header-right {
+            display: flex; align-items: center; gap: 8px;
+            flex-wrap: wrap; justify-content: flex-end;
+        }
+
+        .date-badge {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(200,169,74,0.4);
+            border-radius: 8px; padding: 7px 13px;
+            color: #f0d080; font-size: 12px; font-weight: 500;
+        }
+
+        .nav-tabs {
+            background: linear-gradient(135deg, #1e4570 0%, #2a5a8a 100%);
+            padding: 0 25px; display: flex; gap: 4px;
+            border-bottom: 2px solid #c8a94a;
+        }
+
+        .nav-tab {
+            padding: 11px 18px; cursor: pointer; color: #a8c8e8;
+            font-size: 12px; font-weight: 600;
+            border-radius: 8px 8px 0 0; transition: all 0.3s;
+            border: 1px solid transparent; border-bottom: none;
+            letter-spacing: 0.3px; white-space: nowrap;
+        }
+
+        .nav-tab:hover { color: #f0d080; background: rgba(255,255,255,0.1); }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #f5f0e8 0%, #ede8dc 100%);
+            color: #1a3a5c; border-color: #c8a94a;
+            box-shadow: 0 -3px 10px rgba(0,0,0,0.2);
+        }
+
+        .main-container { padding: 20px 25px; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .stats-row {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 14px; margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, #ffffff, #f0ebe0);
+            border-radius: 12px; padding: 16px 18px;
+            box-shadow: 6px 6px 15px rgba(0,0,0,0.1), -3px -3px 10px rgba(255,255,255,0.8);
+            border: 1px solid rgba(200,169,74,0.2);
+            position: relative; overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 4px; border-radius: 12px 12px 0 0;
+        }
+
+        .stat-card:nth-child(1)::before { background: linear-gradient(90deg, #1a3a5c, #2d5986); }
+        .stat-card:nth-child(2)::before { background: linear-gradient(90deg, #c8a94a, #f0d080); }
+        .stat-card:nth-child(3)::before { background: linear-gradient(90deg, #2e7d32, #4caf50); }
+        .stat-card:nth-child(4)::before { background: linear-gradient(90deg, #b71c1c, #e53935); }
+
+        .stat-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 7px; }
+        .stat-value { font-size: 24px; font-weight: 700; color: #1a3a5c; }
+        .stat-sub { font-size: 11px; color: #888; margin-top: 3px; }
+        .stat-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 32px; opacity: 0.08; }
+
+        .section-card {
+            background: linear-gradient(145deg, #ffffff, #f5f0e6);
+            border-radius: 14px; padding: 22px; margin-bottom: 18px;
+            box-shadow: 8px 8px 20px rgba(0,0,0,0.08), -4px -4px 12px rgba(255,255,255,0.9);
+            border: 1px solid rgba(200,169,74,0.15);
+        }
+
+        .section-title {
+            font-size: 15px; font-weight: 700; color: #1a3a5c;
+            margin-bottom: 18px; padding-bottom: 11px;
+            border-bottom: 2px solid rgba(200,169,74,0.3);
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+
+        .section-title span {
+            background: linear-gradient(135deg, #1a3a5c, #2d5986);
+            color: white; padding: 3px 10px; border-radius: 6px; font-size: 12px;
+        }
+
+        .form-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 16px; margin-bottom: 18px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+
+        .form-group label {
+            font-size: 11px; font-weight: 700; color: #2d5986;
+            text-transform: uppercase; letter-spacing: 0.7px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 9px 13px;
+            border: 2px solid rgba(200,169,74,0.3);
+            border-radius: 8px;
+            background: linear-gradient(145deg, #ffffff, #faf8f2);
+            font-size: 13px; color: #2c2c2c; transition: all 0.3s;
+            box-shadow: inset 2px 2px 6px rgba(0,0,0,0.05);
+            outline: none; font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #2d5986;
+            box-shadow: 0 0 0 3px rgba(45,89,134,0.1);
+            background: #ffffff;
+        }
+
+        /* 3D BUTTONS */
+        .btn {
+            padding: 10px 18px; border: none; border-radius: 9px;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            transition: all 0.15s; letter-spacing: 0.4px;
+            display: inline-flex; align-items: center; gap: 7px;
+            text-transform: uppercase; font-family: inherit; white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #2d6db5, #1a3a5c); color: white;
+            box-shadow: 0 6px 0 #0d2040, 0 8px 15px rgba(26,58,92,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-primary:hover { background: linear-gradient(145deg, #3278c8, #1e4570); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(4px); box-shadow: 0 2px 0 #0d2040; }
+
+        .btn-gold {
+            background: linear-gradient(145deg, #d4b050, #b8922a); color: #1a0f00;
+            box-shadow: 0 6px 0 #7a5c10, 0 8px 15px rgba(200,169,74,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .btn-gold:hover { background: linear-gradient(145deg, #e0bc5a, #c8a030); transform: translateY(-1px); }
+        .btn-gold:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a5c10; }
+
+        .btn-green {
+            background: linear-gradient(145deg, #43a047, #2e7d32); color: white;
+            box-shadow: 0 6px 0 #1b5e20, 0 8px 15px rgba(46,125,50,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-green:hover { background: linear-gradient(145deg, #4caf50, #388e3c); transform: translateY(-1px); }
+        .btn-green:active { transform: translateY(4px); box-shadow: 0 2px 0 #1b5e20; }
+
+        .btn-red {
+            background: linear-gradient(145deg, #e53935, #b71c1c); color: white;
+            box-shadow: 0 6px 0 #7f0000, 0 8px 15px rgba(183,28,28,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-red:hover { background: linear-gradient(145deg, #ef5350, #c62828); transform: translateY(-1px); }
+        .btn-red:active { transform: translateY(4px); box-shadow: 0 2px 0 #7f0000; }
+
+        .btn-purple {
+            background: linear-gradient(145deg, #7b1fa2, #4a0072); color: white;
+            box-shadow: 0 6px 0 #2d0046, 0 8px 15px rgba(74,0,114,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-purple:hover { background: linear-gradient(145deg, #8e24aa, #6a0080); transform: translateY(-1px); }
+        .btn-purple:active { transform: translateY(4px); box-shadow: 0 2px 0 #2d0046; }
+
+        .btn-teal {
+            background: linear-gradient(145deg, #00838f, #006064); color: white;
+            box-shadow: 0 6px 0 #003e40, 0 8px 15px rgba(0,96,100,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-teal:hover { background: linear-gradient(145deg, #0097a7, #00838f); transform: translateY(-1px); }
+        .btn-teal:active { transform: translateY(4px); box-shadow: 0 2px 0 #003e40; }
+
+        .btn-orange {
+            background: linear-gradient(145deg, #f57c00, #e65100); color: white;
+            box-shadow: 0 6px 0 #bf360c, 0 8px 15px rgba(230,81,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-orange:hover { background: linear-gradient(145deg, #fb8c00, #f57c00); transform: translateY(-1px); }
+        .btn-orange:active { transform: translateY(4px); box-shadow: 0 2px 0 #bf360c; }
+
+        .btn-sm { padding: 6px 11px; font-size: 11px; }
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+
+        .upload-area {
+            border: 2px dashed rgba(200,169,74,0.5);
+            border-radius: 12px; padding: 20px; text-align: center;
+            background: linear-gradient(145deg, #fdfaf3, #f5f0e2);
+            cursor: pointer; transition: all 0.3s; position: relative;
+        }
+        .upload-area:hover { border-color: #c8a94a; background: linear-gradient(145deg, #fff9e8, #faf3d5); }
+        .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .upload-icon { font-size: 34px; margin-bottom: 7px; }
+        .upload-title { font-size: 13px; font-weight: 700; color: #1a3a5c; margin-bottom: 3px; }
+        .upload-subtitle { font-size: 11px; color: #888; }
+        .upload-badge { display: inline-block; background: linear-gradient(135deg, #2d5986, #1a3a5c); color: white; padding: 3px 11px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-top: 7px; }
+
+        .table-container { overflow-x: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 950px; }
+        thead { background: linear-gradient(135deg, #1a3a5c 0%, #2d5986 100%); }
+        thead th { padding: 11px 12px; text-align: left; color: #f0d080; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; border-right: 1px solid rgba(255,255,255,0.1); }
+        thead th:last-child { border-right: none; }
+        tbody tr { background: white; border-bottom: 1px solid rgba(200,169,74,0.12); transition: all 0.2s; }
+        tbody tr:nth-child(even) { background: linear-gradient(145deg, #faf8f2, #f5f2e8); }
+        tbody tr:hover { background: linear-gradient(145deg, #edf4ff, #e5edff); }
+        tbody td { padding: 9px 12px; color: #2c2c2c; border-right: 1px solid rgba(0,0,0,0.04); font-size: 12px; }
+        tbody td:last-child { border-right: none; }
+
+        .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-matched { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #1b5e20; border: 1px solid #a5d6a7; }
+        .badge-pending { background: linear-gradient(135deg, #fff8e1, #ffecb3); color: #e65100; border: 1px solid #ffcc02; }
+        .badge-verified { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #0d47a1; border: 1px solid #90caf9; }
+        .badge-ambiguous { background: linear-gradient(135deg, #fce4ec, #f8bbd0); color: #880e4f; border: 1px solid #f48fb1; }
+
+        .search-bar { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
+        .search-wrapper { position: relative; flex: 1; min-width: 180px; }
+        .search-wrapper::before { content: '🔍'; position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; z-index: 1; }
+        .search-input { width: 100%; padding: 9px 13px 9px 36px; border: 2px solid rgba(200,169,74,0.3); border-radius: 8px; background: linear-gradient(145deg, #ffffff, #faf8f2); font-size: 13px; outline: none; transition: all 0.3s; font-family: inherit; }
+        .search-input:focus { border-color: #2d5986; box-shadow: 0 0 0 3px rgba(45,89,134,0.1); }
+
+        .alert { padding: 11px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 13px; font-weight: 500; display: none; }
+        .alert.show { display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: linear-gradient(145deg, #e8f5e9, #dcedc8); border: 1px solid #a5d6a7; color: #1b5e20; }
+        .alert-error   { background: linear-gradient(145deg, #ffebee, #ffcdd2); border: 1px solid #ef9a9a; color: #b71c1c; }
+        .alert-info    { background: linear-gradient(145deg, #e3f2fd, #bbdefb); border: 1px solid #90caf9; color: #0d47a1; }
+        .alert-warning { background: linear-gradient(145deg, #fff8e1, #ffecb3); border: 1px solid #ffcc02; color: #e65100; }
+
+        .empty-state { text-align: center; padding: 40px 20px; }
+        .empty-state-icon { font-size: 50px; margin-bottom: 12px; opacity: 0.4; }
+        .empty-state-text { font-size: 15px; font-weight: 600; color: #666; margin-bottom: 5px; }
+        .empty-state-sub  { font-size: 12px; color: #aaa; }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+        .modal-overlay.show { display: flex; }
+        .modal { background: linear-gradient(145deg, #ffffff, #f5f0e6); border-radius: 16px; padding: 26px; max-width: 520px; width: 92%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid rgba(200,169,74,0.3); max-height: 90vh; overflow-y: auto; }
+        .modal-title { font-size: 16px; font-weight: 700; color: #1a3a5c; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid rgba(200,169,74,0.3); }
+        .modal-body { margin-bottom: 16px; }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+        .action-btns { display: flex; gap: 5px; }
+        .amount-cell { font-weight: 700; color: #1b5e20; }
+        .utr-cell { font-family: 'Courier New', monospace; font-size: 11px; color: #0d47a1; font-weight: 600; }
+
+        /* UTR Match Log */
+        .match-log {
+            background: #fafafa; border: 1px solid #e0e0e0;
+            border-radius: 8px; max-height: 320px; overflow-y: auto;
+            font-size: 11px;
+        }
+
+        .match-log-item {
+            padding: 8px 12px; border-bottom: 1px solid #f0f0f0;
+            display: grid; grid-template-columns: 30px 1fr auto;
+            gap: 8px; align-items: center;
+        }
+
+        .match-log-item:last-child { border-bottom: none; }
+
+        .match-icon { font-size: 14px; text-align: center; }
+
+        .match-details { display: flex; flex-direction: column; gap: 2px; }
+        .match-vendor { font-weight: 700; color: #1a3a5c; font-size: 12px; }
+        .match-info   { color: #666; font-size: 10px; }
+        .match-utr    { font-family: monospace; color: #0d47a1; font-weight: 700; font-size: 11px; text-align: right; }
+
+        .ambiguous-panel {
+            background: linear-gradient(145deg, #fce4ec, #f8bbd0);
+            border: 1px solid #f48fb1; border-radius: 10px;
+            padding: 15px; margin-top: 15px; display: none;
+        }
+
+        .ambiguous-panel.show { display: block; }
+        .ambiguous-title { font-size: 13px; font-weight: 700; color: #880e4f; margin-bottom: 10px; }
+
+        .ambiguous-item {
+            background: white; border-radius: 8px; padding: 12px;
+            margin-bottom: 10px; border: 1px solid #f48fb1;
+        }
+
+        .ambiguous-item:last-child { margin-bottom: 0; }
+        .ambiguous-vendor { font-weight: 700; color: #1a3a5c; font-size: 13px; margin-bottom: 8px; }
+        .ambiguous-candidates { display: flex; flex-direction: column; gap: 6px; }
+
+        .candidate-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 7px 10px; background: #fafafa; border-radius: 6px;
+            border: 1px solid #e0e0e0; gap: 8px; flex-wrap: wrap;
+        }
+
+        .candidate-info { flex: 1; font-size: 11px; color: #555; }
+        .candidate-utr  { font-family: monospace; font-size: 11px; color: #0d47a1; font-weight: 700; }
+
+        .col-map-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 10px; margin-bottom: 15px;
+        }
+
+        .col-map-item { display: flex; flex-direction: column; gap: 4px; }
+        .col-map-label { font-size: 10px; font-weight: 700; color: #2d5986; text-transform: uppercase; letter-spacing: 0.5px; }
+        .col-map-select { padding: 7px 10px; border: 1px solid rgba(200,169,74,0.4); border-radius: 6px; font-size: 12px; font-family: inherit; outline: none; background: white; color: #2c2c2c; cursor: pointer; }
+
+        .info-box { padding: 12px 15px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; }
+        .info-box-blue { background: rgba(45,89,134,0.06); border-left: 3px solid #2d5986; color: #1a3a5c; }
+        .info-box-gold { background: rgba(200,169,74,0.08); border-left: 3px solid #c8a94a; color: #7a5c10; }
+        .info-box-green { background: rgba(46,125,50,0.06); border-left: 3px solid #2e7d32; color: #1b5e20; }
+
+        .progress-bar-wrap { background: #e0e0e0; border-radius: 10px; height: 8px; margin: 8px 0; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #2d5986, #43a047); transition: width 0.5s; }
+
+        .backup-list { max-height: 280px; overflow-y: auto; border: 1px solid rgba(200,169,74,0.3); border-radius: 8px; background: white; }
+        .backup-item { padding: 11px 14px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .backup-item:last-child { border-bottom: none; }
+        .backup-item-info { flex: 1; }
+        .backup-item-name { font-size: 13px; font-weight: 600; color: #1a3a5c; }
+        .backup-item-meta { font-size: 11px; color: #888; margin-top: 2px; }
+        .backup-item-actions { display: flex; gap: 6px; }
+
+        .footer {
+            background: linear-gradient(135deg, #1a3a5c, #0d2040);
+            padding: 12px 25px; text-align: center; color: #a8c8e8;
+            font-size: 11px; border-top: 2px solid #c8a94a; margin-top: 25px;
+        }
+        .footer a { color: #c8a94a; text-decoration: none; font-weight: 600; }
+
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: #f0ebe0; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(#2d5986, #1a3a5c); border-radius: 4px; }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2,1fr); }
+            .form-grid  { grid-template-columns: 1fr; }
+            .two-col    { grid-template-columns: 1fr; }
+            .col-map-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-top">
+        <div class="header-left">
+            <div class="logo-icon">🏦</div>
+            <div class="header-title-block">
+                <h1>CHEQUE ISSUE REGISTER</h1>
+                <p>Financial Management & Payment Tracking System</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="date-badge" id="currentDate"></div>
+            <button class="btn btn-purple" onclick="switchTab('backup',event)">🗄️ Backup</button>
+            <button class="btn btn-gold"   onclick="exportToCSV()">⬇ Export CSV</button>
+        </div>
+    </div>
+    <div class="header-copyright">
+        Application designed by <span>Portfoliobuilder.in</span> &nbsp;|&nbsp;
+        Copyright © 2026 Portfoliobuilder.in. All Rights Reserved.
+    </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-tabs">
+    <div class="nav-tab active"  data-tab="dashboard" onclick="switchTab('dashboard',event)">📊 Dashboard</div>
+    <div class="nav-tab" data-tab="entry"     onclick="switchTab('entry',event)">➕ New Entry</div>
+    <div class="nav-tab" data-tab="import"    onclick="switchTab('import',event)">📥 Import Excel</div>
+    <div class="nav-tab" data-tab="utr"       onclick="switchTab('utr',event)">🔗 UTR Match</div>
+    <div class="nav-tab" data-tab="register"  onclick="switchTab('register',event)">📋 Register</div>
+    <div class="nav-tab" data-tab="backup"    onclick="switchTab('backup',event)">🗄️ Backup</div>
+</div>
+
+<!-- MAIN -->
+<div class="main-container">
+
+    <div class="alert" id="alertBox"><span id="alertIcon"></span><span id="alertMsg"></span></div>
+
+    <!-- DASHBOARD -->
+    <div class="tab-content active" id="tab-dashboard">
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Entries</div>
+                <div class="stat-value" id="stat-total">0</div>
+                <div class="stat-sub">Cheques Issued</div>
+                <div class="stat-icon">📄</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Amount</div>
+                <div class="stat-value" id="stat-amount">₹0</div>
+                <div class="stat-sub">Cumulative Value</div>
+                <div class="stat-icon">💰</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">UTR Matched</div>
+                <div class="stat-value" id="stat-matched">0</div>
+                <div class="stat-sub">Verified Payments</div>
+                <div class="stat-icon">✅</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending UTR</div>
+                <div class="stat-value" id="stat-pending">0</div>
+                <div class="stat-sub">Awaiting Confirmation</div>
+                <div class="stat-icon">⏳</div>
+            </div>
+        </div>
+        <div class="section-card">
+            <div class="section-title">📋 Recent Entries <span>Last 10 Records</span></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr>
+                        <th>#</th><th>Date</th><th>Account No.</th><th>Vendor Name</th>
+                        <th>Amount (₹)</th><th>IFSC</th><th>PV No.</th><th>UTR Number</th><th>Status</th>
+                    </tr></thead>
+                    <tbody id="dashboardTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW ENTRY -->
+    <div class="tab-content" id="tab-entry">
+        <div class="section-card">
+            <div class="section-title">➕ New Cheque Entry <span>Manual Input</span></div>
+            <div class="form-grid">
+                <div class="form-group"><label>📅 Entry Date *</label><input type="date" id="inp-date"></div>
+                <div class="form-group"><label>🏦 Account Number *</label><input type="text" id="inp-account" placeholder="Enter account number"></div>
+                <div class="form-group"><label>🏢 Vendor Name *</label><input type="text" id="inp-vendor" placeholder="Enter vendor / payee name"></div>
+                <div class="form-group"><label>💰 Amount (₹) *</label><input type="number" id="inp-amount" placeholder="0.00" step="0.01" min="0"></div>
+                <div class="form-group"><label>🔑 IFSC Code *</label><input type="text" id="inp-ifsc" placeholder="XXXX0000000" maxlength="11" style="text-transform:uppercase"></div>
+                <div class="form-group"><label>📜 Payment Voucher No. *</label><input type="text" id="inp-pv" placeholder="PV-YYYY-XXXX"></div>
+                <div class="form-group"><label>🔢 UTR Number (Optional)</label><input type="text" id="inp-utr" placeholder="Auto-captured from bank statement"></div>
+                <div class="form-group"><label>📝 Remarks</label><input type="text" id="inp-remarks" placeholder="Optional remarks"></div>
+                <div class="form-group"><label>📊 Status</label>
+                    <select id="inp-status">
+                        <option value="Pending">Pending</option>
+                        <option value="Matched">Matched</option>
+                        <option value="Verified">Verified</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="addEntry()">💾 Save Entry</button>
+                <button class="btn btn-gold"    onclick="clearForm()">🔄 Clear Form</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMPORT EXCEL -->
+    <div class="tab-content" id="tab-import">
+        <div class="two-col">
+            <!-- Cheque Data Import -->
+            <div class="section-card">
+                <div class="section-title">📥 Import Cheque Register <span>Excel Upload</span></div>
+                <div class="upload-area">
+                    <input type="file" id="chequeFile" accept=".xlsx,.xls,.csv" onchange="importChequeExcel(event)">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-title">Upload Cheque Data Excel</div>
+                    <div class="upload-subtitle">Drop file here or click to browse</div>
+                    <div class="upload-badge">Accepts .xlsx / .xls / .csv</div>
+                </div>
+                <div class="info-box info-box-blue" style="margin-top:14px;">
+                    <p style="font-weight:700; margin-bottom:6px;">📌 Required Excel Columns:</p>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+                        <p>• Account Number</p><p>• Vendor Name</p>
+                        <p>• Amount</p><p>• IFSC Code</p>
+                        <p>• Payment Voucher No</p><p>• Date (optional)</p>
+                    </div>
+                </div>
+                <div id="chequeImportResult" style="display:none; margin-top:10px;"></div>
+            </div>
+
+            <!-- Bank Statement Import -->
+            <div class="section-card">
+                <div class="section-title">🏦 Import Bank Statement <span>UTR Capture</span></div>
+                <div class="upload-area">
+                    <input type="file" id="bankFile" accept=".xlsx,.xls,.csv" onchange="importBankStatement(event)">
+                    <div class="upload-icon">🏛️</div>
+                    <div class="upload-title">Upload Bank Statement Excel</div>
+                    <div class="upload-subtitle">UTR numbers will be auto-extracted</div>
+                    <div class="upload-badge">Smart Column Detection</div>
+                </div>
+
+                <!-- Column Mapper (shown after upload) -->
+                <div id="columnMapperArea" style="display:none; margin-top:14px;">
+                    <div class="info-box info-box-gold">
+                        <p style="font-weight:700; margin-bottom:6px;">🔧 Map Bank Statement Columns</p>
+                        <p style="font-size:11px;">Select which column in your file corresponds to each field:</p>
+                    </div>
+                    <div class="col-map-grid" id="colMapGrid"></div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="confirmColumnMap()">✅ Confirm Mapping & Extract</button>
+                        <button class="btn btn-gold btn-sm" onclick="autoDetectColumns()">🔍 Auto-Detect</button>
+                    </div>
+                </div>
+
+                <div id="bankImportResult" style="display:none; margin-top:10px;"></div>
+
+                <div id="utrPreviewArea" style="display:none; margin-top:13px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px;">
+                        <p style="font-size:12px; font-weight:700; color:#1a3a5c;">Extracted Bank Transactions:</p>
+                        <span id="utrExtractCount" style="font-size:11px; color:#888;"></span>
+                    </div>
+                    <div id="utrPreviewList" style="max-height:200px; overflow-y:auto; background:#fafafa; border:1px solid #ddd; border-radius:8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UTR MATCH TAB -->
+    <div class="tab-content" id="tab-utr">
+
+        <!-- Matching Config -->
+        <div class="section-card">
+            <div class="section-title">⚙️ Matching Configuration <span>Smart Match Engine</span></div>
+
+            <div class="info-box info-box-green" style="margin-bottom:15px;">
+                <p style="font-weight:700; margin-bottom:5px;">🎯 Matching Logic (in order of priority):</p>
+                <p><b>Step 1:</b> Match Transaction Amount exactly (within ±₹1 tolerance)</p>
+                <p style="margin-top:3px;"><b>Step 2:</b> Verify by partial Vendor Name found in Transaction Description</p>
+                <p style="margin-top:3px;"><b>Step 3:</b> Assign the UTR Number only if both conditions are satisfied</p>
+                <p style="margin-top:3px;"><b>Ambiguous:</b> If amount matches multiple entries, show for manual review</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:15px;">
+                <div class="form-group">
+                    <label>Amount Tolerance (₹)</label>
+                    <input type="number" id="amtTolerance" value="1" min="0" max="100" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Min. Name Match Length (chars)</label>
+                    <input type="number" id="minNameLen" value="4" min="2" max="15">
+                </div>
+                <div class="form-group">
+                    <label>Name Match Mode</label>
+                    <select id="nameMatchMode">
+                        <option value="any">Any word matches</option>
+                        <option value="first">First word matches</option>
+                        <option value="all">All words match</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="runSmartUTRMatch()">🔗 Run Smart UTR Match</button>
+                <button class="btn btn-orange"  onclick="runAmountOnlyMatch()">💰 Amount-Only Match (Preview)</button>
+                <button class="btn btn-green"   onclick="refreshUTRPanel()">🔄 Refresh</button>
+                <button class="btn btn-gold"    onclick="manualUTRAssign()">✏️ Manual Assign</button>
+            </div>
+        </div>
+
+        <!-- Match Result -->
+        <div id="matchResultPanel" style="display:none;" class="section-card">
+            <div class="section-title">📊 Match Results <span id="matchResultLabel"></span></div>
+
+            <!-- Stats -->
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;">
+                <div style="padding:12px; background:linear-gradient(145deg,#e8f5e9,#dcedc8); border-radius:10px; border:1px solid #a5d6a7; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#1b5e20;" id="res-matched">0</div>
+                    <div style="font-size:11px; color:#2e7d32; font-weight:600;">✅ Matched</div>
+                </div>
+                <div style="padding:12px; background:linear-gradient(145deg,#fce4ec,#f8bbd0); border-radius:10px; border:1px solid #f48fb1; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#880e4f;" id="res-ambiguous">0</div>
+                    <div style="font-size:11px; color:#880e4f; font-weight:600;">⚠️ Ambiguous</div>
+                </div>
+                <div style="padding:12px; background:linear-gradient(145deg,#fff8e1,#ffecb3); border-radius:10px; border:1px solid #ffcc02; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#e65100;" id="res-unmatched">0</div>
+                    <div style="font-size:11px; color:#e65100; font-weight:600;">⏳ Unmatched</div>
+                </div>
+                <div style="padding:12px; background:linear-gradient(145deg,#e3f2fd,#bbdefb); border-radius:10px; border:1px solid #90caf9; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#0d47a1;" id="res-total">0</div>
+                    <div style="font-size:11px; color:#0d47a1; font-weight:600;">📊 Total Processed</div>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div style="margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;">
+                    <span>Match Progress</span>
+                    <span id="progressPct">0%</span>
+                </div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+            </div>
+
+            <!-- Match Log -->
+            <div style="margin-bottom:12px;">
+                <p style="font-size:13px; font-weight:700; color:#1a3a5c; margin-bottom:8px;">📋 Match Log</p>
+                <div class="match-log" id="matchLog"></div>
+            </div>
+
+            <!-- Ambiguous Panel -->
+            <div class="ambiguous-panel" id="ambiguousPanel">
+                <div class="ambiguous-title">⚠️ Ambiguous Matches — Manual Review Required</div>
+                <p style="font-size:11px; color:#880e4f; margin-bottom:12px;">Multiple UTRs found with same amount. Select the correct UTR for each entry:</p>
+                <div id="ambiguousList"></div>
+                <div class="btn-row" style="margin-top:12px;">
+                    <button class="btn btn-green" onclick="saveAmbiguousSelections()">💾 Save Selections</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side by side lists -->
+        <div class="two-col">
+            <div class="section-card">
+                <div class="section-title" style="margin-bottom:12px;">🏦 Bank UTR Pool <span id="bankUTRCount">0 entries</span></div>
+                <div id="bankUTRList" style="max-height:300px; overflow-y:auto; border:1px solid rgba(200,169,74,0.3); border-radius:8px; background:white;">
+                    <div style="padding:18px; text-align:center; color:#999; font-size:12px;">Import bank statement first</div>
+                </div>
+            </div>
+            <div class="section-card">
+                <div class="section-title" style="margin-bottom:12px;">📋 Pending UTRs <span id="registerUTRCount">0 entries</span></div>
+                <div id="registerUTRList" style="max-height:300px; overflow-y:auto; border:1px solid rgba(200,169,74,0.3); border-radius:8px; background:white;">
+                    <div style="padding:18px; text-align:center; color:#999; font-size:12px;">Add register entries first</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual UTR -->
+        <div class="section-card" id="manualUTRCard" style="display:none;">
+            <div class="section-title">✏️ Manual UTR Assignment</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Select Register Entry</label>
+                    <select id="sel-entry-for-utr"><option value="">-- Select Entry --</option></select>
+                </div>
+                <div class="form-group">
+                    <label>UTR Number</label>
+                    <input type="text" id="manual-utr-input" placeholder="Enter UTR from bank statement">
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-green" onclick="saveManualUTR()">💾 Assign UTR</button>
+                <button class="btn btn-red btn-sm" onclick="document.getElementById('manualUTRCard').style.display='none'">✕ Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="tab-content" id="tab-register">
+        <div class="section-card">
+            <div class="section-title">📋 Complete Cheque Register <span id="registerCount">0 Records</span></div>
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search vendor, account, PV, UTR..." oninput="searchRegister(this.value)">
+                </div>
+                <select id="filterStatus" style="padding:9px 12px; border:2px solid rgba(200,169,74,0.3); border-radius:8px; font-size:12px; font-family:inherit; outline:none; background:linear-gradient(145deg,#fff,#faf8f2); cursor:pointer;" onchange="searchRegister(document.getElementById('searchInput').value)">
+                    <option value="">All Status</option>
+                    <option value="Matched">Matched</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Verified">Verified</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="exportToCSV()">⬇ CSV</button>
+                <button class="btn btn-gold btn-sm"    onclick="printRegister()">🖨️ Print</button>
+                <button class="btn btn-red btn-sm"     onclick="confirmClearAll()">🗑️ Clear All</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr>
+                        <th>#</th><th>Date</th><th>Account Number</th><th>Vendor Name</th>
+                        <th>Amount (₹)</th><th>IFSC Code</th><th>PV Number</th>
+                        <th>UTR Number</th><th>Remarks</th><th>Status</th><th>Actions</th>
+                    </tr></thead>
+                    <tbody id="registerTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKUP -->
+    <div class="tab-content" id="tab-backup">
+        <div class="section-card">
+            <div class="section-title">🗄️ Data Backup Manager <span id="backupCount">0 Backups</span></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px;">
+                <div style="padding:16px; background:linear-gradient(145deg,#e3f2fd,#bbdefb); border-radius:12px; border:1px solid #90caf9;">
+                    <p style="font-size:14px; font-weight:700; color:#0d47a1; margin-bottom:7px;">💾 Create New Backup</p>
+                    <p style="font-size:12px; color:#1565c0; margin-bottom:12px;">Save current register snapshot to local browser storage.</p>
+                    <div class="form-group" style="margin-bottom:11px;">
+                        <label style="color:#0d47a1;">Backup Label (optional)</label>
+                        <input type="text" id="backupLabel" placeholder="e.g. June 2026 Backup" style="background:white;">
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="createBackup()">💾 Save Backup</button>
+                        <button class="btn btn-teal"    onclick="exportBackupJSON()">📤 Export JSON</button>
+                    </div>
+                </div>
+                <div style="padding:16px; background:linear-gradient(145deg,#fff8e1,#ffecb3); border-radius:12px; border:1px solid #ffcc02;">
+                    <p style="font-size:14px; font-weight:700; color:#e65100; margin-bottom:7px;">📥 Restore from File</p>
+                    <p style="font-size:12px; color:#bf360c; margin-bottom:12px;">Restore data from a previously exported JSON backup.</p>
+                    <div class="upload-area" style="padding:13px; background:rgba(255,255,255,0.7);">
+                        <input type="file" accept=".json" onchange="importBackupJSON(event)">
+                        <div style="font-size:22px;">📂</div>
+                        <div style="font-size:12px; font-weight:700; color:#e65100; margin-top:4px;">Click to select backup JSON</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:11px;">
+                    <p style="font-size:13px; font-weight:700; color:#1a3a5c;">📋 Stored Backups</p>
+                    <button class="btn btn-red btn-sm" onclick="clearAllBackups()">🗑️ Clear All</button>
+                </div>
+                <div class="backup-list" id="backupList"></div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- end main -->
+
+<!-- FOOTER -->
+<div class="footer">
+    🏦 Cheque Issue Register | Financial Management System | Data stored locally in browser &nbsp;|&nbsp;
+    Application designed by <a href="https://portfoliobuilder.in" target="_blank">Portfoliobuilder.in</a>
+    &nbsp;|&nbsp; Copyright © 2026 Portfoliobuilder.in. All Rights Reserved.
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="modal-title">⚠️ Confirm Delete</div>
+        <div class="modal-body">
+            <p style="color:#555; font-size:13px;">Are you sure you want to delete this entry?</p>
+            <div id="deleteRecordInfo" style="margin-top:12px; padding:10px; background:#fff3cd; border-radius:8px; border:1px solid #ffc107; font-size:12px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-red"     onclick="confirmDelete()">🗑️ Delete</button>
+            <button class="btn btn-primary" onclick="closeModal('deleteModal')">✕ Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+    <div class="modal" style="max-width:640px;">
+        <div class="modal-title">✏️ Edit Entry</div>
+        <div class="modal-body">
+            <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+                <div class="form-group"><label>Date</label><input type="date" id="edit-date"></div>
+                <div class="form-group"><label>Account Number</label><input type="text" id="edit-account"></div>
+                <div class="form-group"><label>Vendor Name</label><input type="text" id="edit-vendor"></div>
+                <div class="form-group"><label>Amount (₹)</label><input type="number" id="edit-amount" step="0.01"></div>
+                <div class="form-group"><label>IFSC Code</label><input type="text" id="edit-ifsc"></div>
+                <div class="form-group"><label>Payment Voucher No.</label><input type="text" id="edit-pv"></div>
+                <div class="form-group"><label>UTR Number</label><input type="text" id="edit-utr"></div>
+                <div class="form-group"><label>Remarks</label><input type="text" id="edit-remarks"></div>
+                <div class="form-group"><label>Status</label>
+                    <select id="edit-status">
+                        <option value="Pending">Pending</option>
+                        <option value="Matched">Matched</option>
+                        <option value="Verified">Verified</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-green"   onclick="saveEdit()">💾 Save</button>
+            <button class="btn btn-primary" onclick="closeModal('editModal')">✕ Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="clearModal">
+    <div class="modal">
+        <div class="modal-title">⚠️ Clear All Records</div>
+        <div class="modal-body">
+            <p style="color:#555; font-size:13px;">This will permanently delete ALL records. Cannot be undone.</p>
+            <p style="color:#b71c1c; font-size:12px; font-weight:700; margin-top:10px;">Type <b>DELETE</b> to confirm:</p>
+            <input type="text" id="clearConfirmInput" placeholder='Type "DELETE"' style="margin-top:8px; width:100%; padding:9px; border:2px solid #ef9a9a; border-radius:8px; font-size:13px; font-family:inherit; outline:none;">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-red"     onclick="clearAllRecords()">🗑️ Clear All</button>
+            <button class="btn btn-primary" onclick="closeModal('clearModal')">✕ Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="restoreModal">
+    <div class="modal">
+        <div class="modal-title">⚠️ Restore Backup</div>
+        <div class="modal-body">
+            <p style="color:#555; font-size:13px;">Restoring will <b>replace</b> all current data.</p>
+            <div id="restoreInfo" style="margin-top:11px; padding:10px; background:#fff3cd; border-radius:8px; border:1px solid #ffc107; font-size:12px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-green"   onclick="confirmRestore()">✅ Restore</button>
+            <button class="btn btn-primary" onclick="closeModal('restoreModal')">✕ Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+let registers        = JSON.parse(localStorage.getItem('chequeRegister') || '[]');
+let bankUTRs         = JSON.parse(localStorage.getItem('bankUTRs')       || '[]');
+let rawBankHeaders   = [];      // column headers from uploaded bank file
+let rawBankRows      = [];      // raw rows from bank file
+let deleteTargetId   = null;
+let editTargetId     = null;
+let restoreTargetKey = null;
+let ambiguousQueue   = [];      // [{regEntry, candidates:[bankEntry,...]}]
+
+// ===================== INIT =====================
+function init() {
+    const today = new Date();
+    document.getElementById('currentDate').textContent =
+        today.toLocaleDateString('en-IN', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+    document.getElementById('inp-date').value = today.toISOString().split('T')[0];
+    renderAll();
+    renderBackupList();
+}
+
+// ===================== DATE UTILS =====================
+function parseExcelDate(val) {
+    if (val === null || val === undefined || val === '') return '';
+    if (typeof val === 'number') {
+        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+        if (!isNaN(d) && d.getFullYear() > 1900 && d.getFullYear() < 2200)
+            return d.toISOString().split('T')[0];
+        return '';
+    }
+    if (typeof val === 'string') {
+        const isoM = val.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoM) { const d = new Date(val); if (!isNaN(d)) return d.toISOString().split('T')[0]; }
+
+        const dmyM = val.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+        if (dmyM) {
+            const d = new Date(`${dmyM[3]}-${dmyM[2].padStart(2,'0')}-${dmyM[1].padStart(2,'0')}`);
+            if (!isNaN(d)) return d.toISOString().split('T')[0];
+        }
+        const gd = new Date(val);
+        if (!isNaN(gd) && gd.getFullYear() > 1900 && gd.getFullYear() < 2200)
+            return gd.toISOString().split('T')[0];
+        return '';
+    }
+    if (val instanceof Date) {
+        if (!isNaN(val)) return val.toISOString().split('T')[0];
+        return '';
+    }
+    return '';
+}
+
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d)) return dateStr;
+    return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// ===================== TABS =====================
+function switchTab(tab, event) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    const navTab = document.querySelector(`.nav-tab[data-tab="${tab}"]`);
+    if (navTab) navTab.classList.add('active');
+    if (tab === 'register') renderRegister(registers);
+    if (tab === 'dashboard') renderDashboard();
+    if (tab === 'utr') refreshUTRPanel();
+    if (tab === 'backup') renderBackupList();
+}
+
+// ===================== ALERT =====================
+function showAlert(type, msg, duration = 4500) {
+    const box  = document.getElementById('alertBox');
+    const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+    box.className = `alert alert-${type} show`;
+    document.getElementById('alertIcon').textContent = icons[type] || 'ℹ️';
+    document.getElementById('alertMsg').textContent  = msg;
+    clearTimeout(box._t);
+    box._t = setTimeout(() => { box.className = 'alert'; }, duration);
+}
+
+// ===================== PERSIST =====================
+function saveData()     { localStorage.setItem('chequeRegister', JSON.stringify(registers)); }
+function saveBankUTRs() { localStorage.setItem('bankUTRs', JSON.stringify(bankUTRs)); }
+
+// ===================== ADD ENTRY =====================
+function addEntry() {
+    const account = document.getElementById('inp-account').value.trim();
+    const vendor  = document.getElementById('inp-vendor').value.trim();
+    const amount  = parseFloat(document.getElementById('inp-amount').value);
+    const ifsc    = document.getElementById('inp-ifsc').value.trim().toUpperCase();
+    const pv      = document.getElementById('inp-pv').value.trim();
+    const utr     = document.getElementById('inp-utr').value.trim();
+    const remarks = document.getElementById('inp-remarks').value.trim();
+    const status  = document.getElementById('inp-status').value;
+    const date    = document.getElementById('inp-date').value;
+
+    if (!account || !vendor || !amount || !ifsc || !pv || !date) {
+        showAlert('error', 'Please fill all required fields (*).');
+        return;
+    }
+
+    registers.unshift({
+        id: Date.now(), date, account, vendor, amount, ifsc, pv,
+        utr: utr || '', remarks,
+        status: utr ? 'Matched' : status,
+        createdAt: new Date().toISOString()
+    });
+    saveData(); renderAll(); clearForm();
+    showAlert('success', `Entry saved: ${vendor} — ₹${amount.toLocaleString('en-IN')}`);
+}
+
+function clearForm() {
+    ['inp-account','inp-vendor','inp-amount','inp-ifsc','inp-pv','inp-utr','inp-remarks'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('inp-status').value = 'Pending';
+}
+
+// ===================== IMPORT CHEQUE EXCEL =====================
+function importChequeExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const wb   = XLSX.read(new Uint8Array(e.target.result), { type:'array', cellDates:false });
+            const ws   = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(ws, { defval:'', raw:true });
+            if (!rows.length) { showAlert('error','No data found.'); return; }
+
+            const aliases = {
+                account : ['account number','account no','accountno','account','acc no'],
+                vendor  : ['vendor name','vendor','payee name','payee','party name','beneficiary name','beneficiary'],
+                amount  : ['amount','amt','value','payment amount','debit','debit amount'],
+                ifsc    : ['ifsc code','ifsc','ifsc no','bank code'],
+                pv      : ['payment voucher no','payment voucher','pv no','pv number','voucher no','voucher number'],
+                utr     : ['utr number','utr no','utr','transaction id','txn id','reference no'],
+                date    : ['date','payment date','txn date','transaction date','value date'],
+                remarks : ['remarks','narration','description','note','notes']
+            };
+
+            const headers = Object.keys(rows[0]).map(h => h.toLowerCase().trim());
+
+            function findCol(al) {
+                for (const a of al) {
+                    const h = headers.find(h => h === a || h.includes(a));
+                    if (h) return Object.keys(rows[0]).find(k => k.toLowerCase().trim() === h);
+                }
+                return null;
+            }
+
+            const cols  = {};
+            for (const [k,al] of Object.entries(aliases)) cols[k] = findCol(al);
+
+            const today = new Date().toISOString().split('T')[0];
+            let imported = 0, skipped = 0;
+
+            rows.forEach(row => {
+                const account = cols.account ? String(row[cols.account]).trim() : '';
+                const vendor  = cols.vendor  ? String(row[cols.vendor]).trim()  : '';
+                const amount  = cols.amount  ? parseFloat(row[cols.amount]) || 0 : 0;
+                if (!account && !vendor && !amount) { skipped++; return; }
+
+                registers.push({
+                    id: Date.now() + Math.random(),
+                    date: parseExcelDate(cols.date ? row[cols.date] : '') || today,
+                    account: account || 'N/A',
+                    vendor : vendor  || 'N/A',
+                    amount,
+                    ifsc   : cols.ifsc    ? String(row[cols.ifsc]).trim().toUpperCase() : 'N/A',
+                    pv     : cols.pv      ? String(row[cols.pv]).trim()    : 'N/A',
+                    utr    : cols.utr     ? String(row[cols.utr]).trim()   : '',
+                    remarks: cols.remarks ? String(row[cols.remarks]).trim(): '',
+                    status : 'Pending',
+                    createdAt: new Date().toISOString()
+                });
+                imported++;
+            });
+
+            saveData(); renderAll();
+            const el = document.getElementById('chequeImportResult');
+            el.style.display = 'block';
+            el.innerHTML = `<div class="info-box info-box-green">✅ <b>${imported}</b> records imported | <b>${skipped}</b> blank rows skipped</div>`;
+            showAlert('success', `Imported ${imported} records from Excel.`);
+        } catch(err) { showAlert('error', 'Error: ' + err.message); console.error(err); }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// ===================== IMPORT BANK STATEMENT =====================
+function importBankStatement(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const wb   = XLSX.read(new Uint8Array(e.target.result), { type:'array', cellDates:false });
+            const ws   = wb.Sheets[wb.SheetNames[0]];
+            rawBankRows = XLSX.utils.sheet_to_json(ws, { defval:'', raw:true });
+            if (!rawBankRows.length) { showAlert('error','No data found in bank statement.'); return; }
+
+            rawBankHeaders = Object.keys(rawBankRows[0]);
+
+            // Show column mapper
+            buildColumnMapper();
+            document.getElementById('columnMapperArea').style.display = 'block';
+            showAlert('info', `${rawBankRows.length} rows loaded. Map the columns and click Confirm.`);
+        } catch(err) { showAlert('error','Error reading bank file: ' + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function buildColumnMapper() {
+    const fields = [
+        { id:'map-utr',   label:'UTR Number *',           required:true  },
+        { id:'map-amt',   label:'Transaction Amount *',    required:true  },
+        { id:'map-desc',  label:'Transaction Description', required:false },
+        { id:'map-date',  label:'Value / Transaction Date',required:false },
+        { id:'map-dc',    label:'Debit/Credit Indicator',  required:false },
+    ];
+
+    const grid = document.getElementById('colMapGrid');
+    grid.innerHTML = fields.map(f => `
+        <div class="col-map-item">
+            <label class="col-map-label">${f.label}</label>
+            <select class="col-map-select" id="${f.id}">
+                <option value="">-- ${f.required ? 'Required' : 'Optional'} --</option>
+                ${rawBankHeaders.map(h => `<option value="${h}">${h}</option>`).join('')}
+            </select>
+        </div>`
+    ).join('');
+
+    autoDetectColumns();
+}
+
+function autoDetectColumns() {
+    const map = {
+        'map-utr'  : ['utr number','utr no','utr','reference no','ref no','transaction id','txn id','transaction ref'],
+        'map-amt'  : ['transaction amount','amount','debit amount','debit','credit','txn amount','withdrawal amount'],
+        'map-desc' : ['transaction description','description','narration','particulars','details','remarks','particular'],
+        'map-date' : ['value date','date','txn date','transaction date','posting date'],
+        'map-dc'   : ['debit / cre','debit/credit','dr/cr','d/c','type'],
+    };
+
+    for (const [selId, aliases] of Object.entries(map)) {
+        const sel = document.getElementById(selId);
+        if (!sel) continue;
+        const match = rawBankHeaders.find(h => aliases.some(a => h.toLowerCase().trim().includes(a) || a.includes(h.toLowerCase().trim())));
+        if (match) sel.value = match;
+    }
+}
+
+function confirmColumnMap() {
+    const utrCol  = document.getElementById('map-utr').value;
+    const amtCol  = document.getElementById('map-amt').value;
+    const descCol = document.getElementById('map-desc').value;
+    const dateCol = document.getElementById('map-date').value;
+    const dcCol   = document.getElementById('map-dc').value;
+
+    if (!utrCol) { showAlert('error','Please map the UTR Number column.'); return; }
+    if (!amtCol) { showAlert('error','Please map the Transaction Amount column.'); return; }
+
+    // Parse bank rows into structured bankUTRs
+    const invalid = ['','utr','utr no','utr number','undefined','null','0','n/a','-','na'];
+    bankUTRs = [];
+
+    rawBankRows.forEach(row => {
+        const utr  = String(row[utrCol] || '').trim();
+        const raw  = row[amtCol];
+        const amt  = parseFloat(String(raw).replace(/[₹,\s]/g,'')) || 0;
+        const desc = descCol ? String(row[descCol] || '').trim() : '';
+        const date = dateCol ? parseExcelDate(row[dateCol]) : '';
+        const dc   = dcCol   ? String(row[dcCol] || '').trim().toUpperCase() : '';
+
+        if (invalid.includes(utr.toLowerCase())) return;
+
+        bankUTRs.push({ utr, amount: amt, description: desc, date, dc });
+    });
+
+    saveBankUTRs();
+
+    // Preview
+    const previewArea = document.getElementById('utrPreviewArea');
+    const previewList = document.getElementById('utrPreviewList');
+    document.getElementById('utrExtractCount').textContent = `${bankUTRs.length} transactions`;
+
+    previewArea.style.display = 'block';
+    previewList.innerHTML = bankUTRs.slice(0,50).map(u =>
+        `<div style="padding:6px 10px; border-bottom:1px solid #eee; font-size:11px; display:grid; grid-template-columns:1.2fr 0.8fr 2fr; gap:6px; align-items:center;">
+            <span style="font-family:monospace; color:#0d47a1; font-weight:700;">${u.utr}</span>
+            <span style="color:#1b5e20; font-weight:700;">₹${u.amount.toLocaleString('en-IN')}</span>
+            <span style="color:#555; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${u.description}">${u.description || '—'}</span>
+        </div>`
+    ).join('') + (bankUTRs.length > 50 ? `<div style="padding:8px; text-align:center; color:#888; font-size:11px;">...and ${bankUTRs.length-50} more</div>` : '');
+
+    const el = document.getElementById('bankImportResult');
+    el.style.display = 'block';
+    el.innerHTML = `<div class="info-box info-box-green">✅ <b>${bankUTRs.length}</b> UTR transactions extracted from bank statement</div>`;
+
+    refreshUTRPanel();
+    showAlert('success', `${bankUTRs.length} bank transactions loaded. Go to UTR Match tab to run matching.`);
+}
+
+// ===================== VENDOR NAME MATCHING =====================
+/**
+ * Checks if a vendor name (from register) appears in a transaction description.
+ * Splits vendor into words, filters out short/common words, checks partial match.
+ */
+function vendorMatchesDescription(vendorName, description, minLen, mode) {
+    if (!description) return false;
+
+    const desc = description.toLowerCase();
+    const stopWords = new Set(['pvt','ltd','private','limited','company','co','and','the','of','for','&']);
+
+    // Clean vendor name into meaningful tokens
+    const tokens = vendorName
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length >= minLen && !stopWords.has(w));
+
+    if (!tokens.length) {
+        // Fallback: use raw vendor name (first 6 chars min)
+        const raw = vendorName.toLowerCase().replace(/[^a-z0-9]/g,'').substring(0, Math.max(minLen, 5));
+        return raw.length >= 3 && desc.replace(/[^a-z0-9]/g,'').includes(raw);
+    }
+
+    if (mode === 'any') {
+        return tokens.some(t => desc.includes(t));
+    } else if (mode === 'first') {
+        return desc.includes(tokens[0]);
+    } else if (mode === 'all') {
+        return tokens.every(t => desc.includes(t));
+    }
+    return tokens.some(t => desc.includes(t));
+}
+
+// ===================== SMART UTR MATCH (MAIN FIX) =====================
+function runSmartUTRMatch() {
+    if (!bankUTRs.length) { showAlert('error','No bank statement data loaded. Import bank statement first.'); return; }
+
+    const tolerance  = parseFloat(document.getElementById('amtTolerance').value)  || 1;
+    const minNameLen = parseInt(document.getElementById('minNameLen').value)       || 4;
+    const nameMode   = document.getElementById('nameMatchMode').value;
+
+    let matchedCount    = 0;
+    let ambiguousCount  = 0;
+    const matchLog      = [];
+    ambiguousQueue      = [];
+
+    // Pool of available bank UTRs (copy, we'll remove used ones)
+    let availableUTRs = [...bankUTRs];
+
+    registers.forEach(reg => {
+        if (reg.utr) {
+            matchLog.push({ type:'skip', reg, reason:'Already has UTR' });
+            return;
+        }
+
+        // ── STEP 1: Find all bank entries where amount matches within tolerance ──
+        const amountMatches = availableUTRs.filter(b => Math.abs(b.amount - reg.amount) <= tolerance);
+
+        if (!amountMatches.length) {
+            matchLog.push({ type:'fail', reg, reason:'No amount match found' });
+            return;
+        }
+
+        // ── STEP 2: Among amount matches, find those where vendor name matches description ──
+        const fullMatches = amountMatches.filter(b =>
+            vendorMatchesDescription(reg.vendor, b.description, minNameLen, nameMode)
+        );
+
+        if (fullMatches.length === 1) {
+            // Perfect single match ✅
+            reg.utr    = fullMatches[0].utr;
+            reg.status = 'Matched';
+            matchLog.push({ type:'match', reg, bank: fullMatches[0], reason:'Amount + Name matched' });
+            // Remove from available pool
+            const idx = availableUTRs.findIndex(b => b.utr === fullMatches[0].utr);
+            if (idx !== -1) availableUTRs.splice(idx, 1);
+            matchedCount++;
+
+        } else if (fullMatches.length > 1) {
+            // Multiple candidates with amount + name match → ambiguous
+            ambiguousQueue.push({ reg, candidates: fullMatches });
+            matchLog.push({ type:'ambiguous', reg, candidates: fullMatches, reason:`${fullMatches.length} candidates (amt+name)` });
+            ambiguousCount++;
+
+        } else if (amountMatches.length === 1) {
+            // Amount matches exactly ONE entry but name didn't match description
+            // Still assign it but flag it
+            reg.utr    = amountMatches[0].utr;
+            reg.status = 'Matched';
+            matchLog.push({ type:'match-amt-only', reg, bank: amountMatches[0], reason:'Amount matched (name not found in desc)' });
+            const idx = availableUTRs.findIndex(b => b.utr === amountMatches[0].utr);
+            if (idx !== -1) availableUTRs.splice(idx, 1);
+            matchedCount++;
+
+        } else {
+            // Amount matches multiple but name matches none → ambiguous
+            ambiguousQueue.push({ reg, candidates: amountMatches });
+            matchLog.push({ type:'ambiguous', reg, candidates: amountMatches, reason:`${amountMatches.length} amount matches, name not found` });
+            ambiguousCount++;
+        }
+    });
+
+    saveData();
+    renderAll();
+    showMatchResults(matchLog, matchedCount, ambiguousCount);
+    renderAmbiguousPanel();
+    refreshUTRPanel();
+    showAlert(
+        matchedCount > 0 ? 'success' : 'warning',
+        `Matching complete: ${matchedCount} matched, ${ambiguousCount} ambiguous, ${registers.filter(r=>!r.utr).length} unmatched`
+    );
+}
+
+// Amount-only preview (no assignment)
+function runAmountOnlyMatch() {
+    if (!bankUTRs.length) { showAlert('error','No bank statement data loaded.'); return; }
+    const tolerance = parseFloat(document.getElementById('amtTolerance').value) || 1;
+
+    let found = 0;
+    const log = [];
+
+    registers.forEach(reg => {
+        if (reg.utr) return;
+        const matches = bankUTRs.filter(b => Math.abs(b.amount - reg.amount) <= tolerance);
+        if (matches.length) {
+            log.push({ type:'preview', reg, candidates: matches, reason:`${matches.length} amount match(es)` });
+            found++;
+        } else {
+            log.push({ type:'fail', reg, reason:'No amount match' });
+        }
+    });
+
+    showMatchResults(log, 0, found);
+    showAlert('info', `Preview: ${found} entries have at least 1 amount match (no UTR assigned yet).`);
+}
+
+function showMatchResults(log, matchedCount, ambiguousCount) {
+    const panel = document.getElementById('matchResultPanel');
+    panel.style.display = 'block';
+
+    const total     = registers.filter(r => !r.utr).length + matchedCount;
+    const unmatched = registers.filter(r => !r.utr).length;
+
+    document.getElementById('res-matched').textContent   = matchedCount;
+    document.getElementById('res-ambiguous').textContent = ambiguousCount;
+    document.getElementById('res-unmatched').textContent = unmatched;
+    document.getElementById('res-total').textContent     = log.length;
+
+    const pct = total > 0 ? Math.round((matchedCount / total) * 100) : 0;
+    document.getElementById('progressPct').textContent   = pct + '%';
+    document.getElementById('progressBar').style.width   = pct + '%';
+    document.getElementById('matchResultLabel').textContent = `${matchedCount} matched, ${ambiguousCount} ambiguous`;
+
+    const logEl = document.getElementById('matchLog');
+    logEl.innerHTML = log.map(l => {
+        let icon, mainText, subText, utrText = '';
+        if (l.type === 'match') {
+            icon     = '✅';
+            mainText = `<b>${l.reg.vendor}</b>`;
+            subText  = `₹${l.reg.amount.toLocaleString('en-IN')} | ${l.reason}`;
+            utrText  = l.bank.utr;
+        } else if (l.type === 'match-amt-only') {
+            icon     = '🟡';
+            mainText = `<b>${l.reg.vendor}</b>`;
+            subText  = `₹${l.reg.amount.toLocaleString('en-IN')} | ${l.reason}`;
+            utrText  = l.bank.utr;
+        } else if (l.type === 'ambiguous') {
+            icon     = '⚠️';
+            mainText = `<b>${l.reg.vendor}</b>`;
+            subText  = `₹${l.reg.amount.toLocaleString('en-IN')} | ${l.reason}`;
+            utrText  = '(review)';
+        } else if (l.type === 'preview') {
+            icon     = '🔍';
+            mainText = `<b>${l.reg.vendor}</b>`;
+            subText  = `₹${l.reg.amount.toLocaleString('en-IN')} | ${l.reason}`;
+            utrText  = l.candidates.map(c=>c.utr).join(', ').substring(0,40);
+        } else if (l.type === 'fail') {
+            icon     = '❌';
+            mainText = `<b>${l.reg.vendor}</b>`;
+            subText  = `₹${l.reg.amount.toLocaleString('en-IN')} | ${l.reason}`;
+        } else {
+            icon = '⏭️'; mainText = `<b>${l.reg.vendor}</b>`; subText = l.reason;
+        }
+        return `<div class="match-log-item">
+            <div class="match-icon">${icon}</div>
+            <div class="match-details">
+                <div class="match-vendor">${mainText}</div>
+                <div class="match-info">${subText}</div>
+            </div>
+            <div class="match-utr">${utrText}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderAmbiguousPanel() {
+    const panel = document.getElementById('ambiguousPanel');
+    const list  = document.getElementById('ambiguousList');
+
+    if (!ambiguousQueue.length) { panel.classList.remove('show'); return; }
+    panel.classList.add('show');
+
+    list.innerHTML = ambiguousQueue.map((item, qi) => `
+        <div class="ambiguous-item">
+            <div class="ambiguous-vendor">
+                ${item.reg.vendor} &nbsp;|&nbsp; ₹${item.reg.amount.toLocaleString('en-IN')} &nbsp;|&nbsp; PV: ${item.reg.pv}
+            </div>
+            <div class="ambiguous-candidates">
+                ${item.candidates.map((c,ci) => `
+                    <div class="candidate-row">
+                        <input type="radio" name="amb_${qi}" id="amb_${qi}_${ci}" value="${c.utr}" style="flex-shrink:0;">
+                        <label for="amb_${qi}_${ci}" class="candidate-info" style="cursor:pointer;">
+                            <b>₹${c.amount.toLocaleString('en-IN')}</b> &nbsp;
+                            ${c.description ? c.description.substring(0,80) : 'No description'} &nbsp;
+                            ${c.date ? formatDisplayDate(c.date) : ''}
+                        </label>
+                        <span class="candidate-utr">${c.utr}</span>
+                    </div>`
+                ).join('')}
+            </div>
+        </div>`
+    ).join('');
+}
+
+function saveAmbiguousSelections() {
+    let saved = 0;
+    ambiguousQueue.forEach((item, qi) => {
+        const sel = document.querySelector(`input[name="amb_${qi}"]:checked`);
+        if (sel) {
+            const reg = registers.find(r => r.id === item.reg.id);
+            if (reg) { reg.utr = sel.value; reg.status = 'Matched'; saved++; }
+        }
+    });
+    if (!saved) { showAlert('warning','No selections made. Please select a UTR for each ambiguous entry.'); return; }
+    ambiguousQueue = ambiguousQueue.filter((item, qi) => !document.querySelector(`input[name="amb_${qi}"]:checked`));
+    saveData(); renderAll(); renderAmbiguousPanel(); refreshUTRPanel();
+    showAlert('success', `${saved} ambiguous UTR(s) assigned successfully.`);
+}
+
+// ===================== UTR PANEL =====================
+function refreshUTRPanel() {
+    const bankList  = document.getElementById('bankUTRList');
+    const bankCount = document.getElementById('bankUTRCount');
+
+    if (!bankUTRs.length) {
+        bankList.innerHTML = '<div style="padding:18px; text-align:center; color:#999; font-size:12px;">No UTR data. Import bank statement.</div>';
+        bankCount.textContent = '0 entries';
+    } else {
+        bankList.innerHTML = bankUTRs.slice(0,100).map(u =>
+            `<div style="padding:7px 11px; border-bottom:1px solid #f0f0f0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <span style="font-family:monospace; color:#0d47a1; font-weight:700; font-size:11px;">${u.utr}</span>
+                    <span style="color:#1b5e20; font-weight:700; font-size:12px; white-space:nowrap;">₹${u.amount.toLocaleString('en-IN')}</span>
+                </div>
+                ${u.description ? `<div style="font-size:10px; color:#666; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${u.description}">${u.description}</div>` : ''}
+            </div>`
+        ).join('');
+        bankCount.textContent = `${bankUTRs.length} entries`;
+    }
+
+    const regList  = document.getElementById('registerUTRList');
+    const regCount = document.getElementById('registerUTRCount');
+    const pending  = registers.filter(r => !r.utr);
+
+    if (!pending.length) {
+        regList.innerHTML = '<div style="padding:18px; text-align:center; color:#1b5e20; font-size:12px; font-weight:600;">✅ All entries have UTR numbers!</div>';
+        regCount.textContent = '0 pending';
+    } else {
+        regList.innerHTML = pending.slice(0,50).map(r =>
+            `<div style="padding:7px 11px; border-bottom:1px solid #f0f0f0;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="font-weight:600; color:#1a3a5c; font-size:12px;">${r.vendor}</span>
+                    <span style="color:#1b5e20; font-weight:700; font-size:12px;">₹${r.amount.toLocaleString('en-IN')}</span>
+                </div>
+                <div style="font-size:10px; color:#888; margin-top:2px;">PV: ${r.pv} | ${formatDisplayDate(r.date)}</div>
+            </div>`
+        ).join('');
+        regCount.textContent = `${pending.length} pending`;
+    }
+
+    // Populate manual select
+    const sel = document.getElementById('sel-entry-for-utr');
+    sel.innerHTML = '<option value="">-- Select Entry --</option>';
+    registers.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = `${r.vendor} | ₹${r.amount.toLocaleString('en-IN')} | PV: ${r.pv} | ${r.utr || 'No UTR'}`;
+        sel.appendChild(opt);
+    });
+}
+
+function manualUTRAssign() {
+    document.getElementById('manualUTRCard').style.display = 'block';
+    refreshUTRPanel();
+}
+
+function saveManualUTR() {
+    const entryId = document.getElementById('sel-entry-for-utr').value;
+    const utr     = document.getElementById('manual-utr-input').value.trim();
+    if (!entryId) { showAlert('error','Select an entry.'); return; }
+    if (!utr)     { showAlert('error','Enter a UTR number.'); return; }
+    const reg = registers.find(r => String(r.id) === String(entryId));
+    if (reg) {
+        reg.utr = utr; reg.status = 'Matched';
+        saveData(); renderAll(); refreshUTRPanel();
+        document.getElementById('manual-utr-input').value  = '';
+        document.getElementById('sel-entry-for-utr').value = '';
+        showAlert('success', `UTR ${utr} assigned to ${reg.vendor}`);
+    }
+}
+
+// ===================== RENDER =====================
+function renderAll() { updateStats(); renderDashboard(); renderRegister(registers); }
+
+function updateStats() {
+    const total    = registers.length;
+    const totalAmt = registers.reduce((s,r) => s + (r.amount||0), 0);
+    const matched  = registers.filter(r => r.utr).length;
+    const pending  = registers.filter(r => !r.utr).length;
+    document.getElementById('stat-total').textContent   = total;
+    document.getElementById('stat-amount').textContent  = '₹' + totalAmt.toLocaleString('en-IN',{maximumFractionDigits:0});
+    document.getElementById('stat-matched').textContent = matched;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('registerCount').textContent = `${total} Records`;
+}
+
+function renderDashboard() {
+    const tbody  = document.getElementById('dashboardTableBody');
+    const recent = registers.slice(0, 10);
+    if (!recent.length) {
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-text">No Records Found</div>
+            <div class="empty-state-sub">Add entries or import from Excel</div>
+        </div></td></tr>`;
+        return;
+    }
+    tbody.innerHTML = recent.map((r,i) => `
+        <tr>
+            <td><b>${i+1}</b></td>
+            <td>${formatDisplayDate(r.date)}</td>
+            <td style="font-family:monospace;font-size:11px;">${r.account}</td>
+            <td><b>${r.vendor}</b></td>
+            <td class="amount-cell">₹${(r.amount||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td style="font-family:monospace;font-size:11px;">${r.ifsc}</td>
+            <td>${r.pv}</td>
+            <td class="utr-cell">${r.utr || '<span style="color:#e65100;font-family:inherit;">Pending</span>'}</td>
+            <td>${getBadge(r.status, r.utr)}</td>
+        </tr>`).join('');
+}
+
+function getBadge(status, utr) {
+    if (utr)                return `<span class="badge badge-matched">✓ Matched</span>`;
+    if (status==='Verified') return `<span class="badge badge-verified">⚡ Verified</span>`;
+    return `<span class="badge badge-pending">⏳ Pending</span>`;
+}
+
+function renderRegister(data) {
+    const tbody = document.getElementById('registerTableBody');
+    if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-text">No Records Found</div>
+            <div class="empty-state-sub">Add entries or import from Excel</div>
+        </div></td></tr>`;
+        return;
+    }
+    tbody.innerHTML = data.map((r,i) => `
+        <tr>
+            <td><b>${i+1}</b></td>
+            <td>${formatDisplayDate(r.date)}</td>
+            <td style="font-family:monospace;font-size:11px;">${r.account}</td>
+            <td><b>${r.vendor}</b></td>
+            <td class="amount-cell">₹${(r.amount||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td style="font-family:monospace;font-size:11px;">${r.ifsc}</td>
+            <td>${r.pv}</td>
+            <td class="utr-cell">${r.utr || '<span style="color:#e65100;font-style:italic;font-family:inherit;">Not Assigned</span>'}</td>
+            <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.remarks||''}">${r.remarks||'-'}</td>
+            <td>${getBadge(r.status, r.utr)}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn btn-primary btn-sm" onclick="openEdit(${r.id})">✏️</button>
+                    <button class="btn btn-red btn-sm"     onclick="openDelete(${r.id})">🗑️</button>
+                </div>
+            </td>
+        </tr>`).join('');
+}
+
+// ===================== SEARCH =====================
+function searchRegister(query) {
+    query = query.toLowerCase();
+    const sf = document.getElementById('filterStatus').value;
+    const filtered = registers.filter(r => {
+        const qm = !query || [r.account,r.vendor,r.pv,r.utr,r.ifsc,r.remarks,r.date].some(v => v && String(v).toLowerCase().includes(query));
+        const sm = !sf || (sf==='Matched' ? !!r.utr : !r.utr && r.status===sf) || (sf==='Matched' && r.utr);
+        return qm && sm;
+    });
+    renderRegister(filtered);
+}
+
+// ===================== EDIT =====================
+function openEdit(id) {
+    const r = registers.find(r => r.id === id);
+    if (!r) return;
+    editTargetId = id;
+    document.getElementById('edit-date').value    = r.date    || '';
+    document.getElementById('edit-account').value = r.account || '';
+    document.getElementById('edit-vendor').value  = r.vendor  || '';
+    document.getElementById('edit-amount').value  = r.amount  || '';
+    document.getElementById('edit-ifsc').value    = r.ifsc    || '';
+    document.getElementById('edit-pv').value      = r.pv      || '';
+    document.getElementById('edit-utr').value     = r.utr     || '';
+    document.getElementById('edit-remarks').value = r.remarks || '';
+    document.getElementById('edit-status').value  = r.status  || 'Pending';
+    document.getElementById('editModal').classList.add('show');
+}
+
+function saveEdit() {
+    const r = registers.find(r => r.id === editTargetId);
+    if (!r) return;
+    r.date    = document.getElementById('edit-date').value;
+    r.account = document.getElementById('edit-account').value.trim();
+    r.vendor  = document.getElementById('edit-vendor').value.trim();
+    r.amount  = parseFloat(document.getElementById('edit-amount').value) || 0;
+    r.ifsc    = document.getElementById('edit-ifsc').value.trim().toUpperCase();
+    r.pv      = document.getElementById('edit-pv').value.trim();
+    r.utr     = document.getElementById('edit-utr').value.trim();
+    r.remarks = document.getElementById('edit-remarks').value.trim();
+    r.status  = document.getElementById('edit-status').value;
+    if (r.utr) r.status = 'Matched';
+    saveData(); renderAll(); closeModal('editModal');
+    showAlert('success', `Entry updated: ${r.vendor}`);
+}
+
+// ===================== DELETE =====================
+function openDelete(id) {
+    deleteTargetId = id;
+    const r = registers.find(r => r.id === id);
+    if (!r) return;
+    document.getElementById('deleteRecordInfo').innerHTML =
+        `<b>${r.vendor}</b><br>PV: ${r.pv} | ₹${(r.amount||0).toLocaleString('en-IN')}`;
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function confirmDelete() {
+    registers = registers.filter(r => r.id !== deleteTargetId);
+    saveData(); renderAll(); closeModal('deleteModal');
+    showAlert('success','Record deleted.');
+}
+
+function confirmClearAll() {
+    document.getElementById('clearConfirmInput').value = '';
+    document.getElementById('clearModal').classList.add('show');
+}
+
+function clearAllRecords() {
+    if (document.getElementById('clearConfirmInput').value !== 'DELETE') {
+        showAlert('error','Type DELETE to confirm.'); return;
+    }
+    registers = []; saveData(); renderAll(); closeModal('clearModal');
+    showAlert('success','All records cleared.');
+}
+
+// ===================== MODAL =====================
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', function(e) { if (e.target===this) closeModal(this.id); });
+});
+
+// ===================== EXPORT CSV =====================
+function exportToCSV() {
+    if (!registers.length) { showAlert('error','No data to export.'); return; }
+    const headers = ['#','Date','Account Number','Vendor Name','Amount (INR)','IFSC Code','Payment Voucher No','UTR Number','Remarks','Status'];
+    const rows = registers.map((r,i) => [
+        i+1, formatDisplayDate(r.date), r.account, r.vendor, r.amount,
+        r.ifsc, r.pv, r.utr||'', r.remarks||'', r.utr?'Matched':r.status
+    ]);
+    const csv  = [headers,...rows].map(row => row.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `cheque_register_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    showAlert('success',`Exported ${registers.length} records.`);
+}
+
+// ===================== PRINT =====================
+function printRegister() {
+    const w = window.open('','_blank');
+    w.document.write(`<html><head><title>Cheque Issue Register</title>
+    <style>body{font-family:Arial,sans-serif;font-size:11px;margin:15px;}
+    h1{color:#1a3a5c;font-size:16px;} table{width:100%;border-collapse:collapse;}
+    th{background:#1a3a5c;color:#f0d080;padding:7px;text-align:left;font-size:10px;}
+    td{padding:6px 7px;border-bottom:1px solid #ddd;font-size:10px;}
+    tr:nth-child(even)td{background:#f8f6f0;}
+    .footer{margin-top:15px;font-size:9px;color:#888;border-top:1px solid #ddd;padding-top:7px;}
+    </style></head><body>
+    <h1>🏦 CHEQUE ISSUE REGISTER</h1>
+    <p style="color:#555;font-size:11px;margin-bottom:12px;">Printed: ${new Date().toLocaleString('en-IN')} | ${registers.length} records</p>
+    <table><thead><tr>
+        <th>#</th><th>Date</th><th>Account No.</th><th>Vendor Name</th>
+        <th>Amount (₹)</th><th>IFSC</th><th>PV No.</th><th>UTR Number</th><th>Status</th>
+    </tr></thead><tbody>
+    ${registers.map((r,i)=>`<tr>
+        <td>${i+1}</td><td>${formatDisplayDate(r.date)}</td><td>${r.account}</td>
+        <td><b>${r.vendor}</b></td>
+        <td style="font-weight:bold;color:#1b5e20;">₹${(r.amount||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+        <td>${r.ifsc}</td><td>${r.pv}</td>
+        <td style="font-family:monospace;">${r.utr||'Pending'}</td>
+        <td>${r.utr?'Matched':r.status}</td>
+    </tr>`).join('')}
+    </tbody></table>
+    <div class="footer">Application designed by Portfoliobuilder.in | Copyright © 2026 Portfoliobuilder.in. All Rights Reserved.</div>
+    </body></html>`);
+    w.document.close(); w.print();
+}
+
+// ===================== BACKUP =====================
+function getAllBackupKeys() {
+    return Object.keys(localStorage).filter(k=>k.startsWith('chequeBackup_')).sort().reverse();
+}
+
+function createBackup() {
+    if (!registers.length) { showAlert('warning','No data to backup.'); return; }
+    const label = document.getElementById('backupLabel').value.trim() || 'Backup';
+    const ts    = new Date().toISOString();
+    try {
+        localStorage.setItem(`chequeBackup_${ts}`, JSON.stringify({
+            label, timestamp: ts, records: registers.length,
+            totalAmount: registers.reduce((s,r)=>s+(r.amount||0),0),
+            data: registers, bankUTRs
+        }));
+        document.getElementById('backupLabel').value = '';
+        renderBackupList();
+        showAlert('success',`Backup "${label}" saved with ${registers.length} records.`);
+    } catch(e) { showAlert('error','Storage full. Delete old backups. ' + e.message); }
+}
+
+function renderBackupList() {
+    const keys  = getAllBackupKeys();
+    const listEl = document.getElementById('backupList');
+    const countEl = document.getElementById('backupCount');
+    countEl.textContent = `${keys.length} Backup${keys.length!==1?'s':''}`;
+
+    if (!keys.length) {
+        listEl.innerHTML = '<div style="padding:22px; text-align:center; color:#999; font-size:12px;">No backups found.</div>';
+        return;
+    }
+
+    listEl.innerHTML = keys.map(key => {
+        let b; try { b = JSON.parse(localStorage.getItem(key)); } catch(e) { return ''; }
+        const d = new Date(b.timestamp);
+        return `<div class="backup-item">
+            <div class="backup-item-info">
+                <div class="backup-item-name">📦 ${b.label}</div>
+                <div class="backup-item-meta">${d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})} ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})} | ${b.records} records | ₹${(b.totalAmount||0).toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+            </div>
+            <div class="backup-item-actions">
+                <button class="btn btn-green btn-sm"   onclick="openRestoreModal('${key}')">🔄 Restore</button>
+                <button class="btn btn-teal btn-sm"    onclick="downloadBackup('${key}')">📤</button>
+                <button class="btn btn-red btn-sm"     onclick="deleteBackup('${key}')">🗑️</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openRestoreModal(key) {
+    restoreTargetKey = key;
+    let b; try { b = JSON.parse(localStorage.getItem(key)); } catch(e) { return; }
+    const d = new Date(b.timestamp);
+    document.getElementById('restoreInfo').innerHTML =
+        `<b>${b.label}</b><br>Created: ${d.toLocaleString('en-IN')}<br>Records: ${b.records}`;
+    document.getElementById('restoreModal').classList.add('show');
+}
+
+function confirmRestore() {
+    if (!restoreTargetKey) return;
+    let b; try { b = JSON.parse(localStorage.getItem(restoreTargetKey)); } catch(e) { showAlert('error','Cannot read backup.'); return; }
+    registers = b.data || []; if (b.bankUTRs) bankUTRs = b.bankUTRs;
+    saveData(); saveBankUTRs(); renderAll(); closeModal('restoreModal');
+    showAlert('success',`Restored "${b.label}" — ${registers.length} records.`);
+}
+
+function deleteBackup(key) { localStorage.removeItem(key); renderBackupList(); showAlert('info','Backup deleted.'); }
+
+function clearAllBackups() {
+    const keys = getAllBackupKeys();
+    if (!keys.length) { showAlert('info','No backups to clear.'); return; }
+    if (!confirm(`Delete all ${keys.length} backup(s)?`)) return;
+    keys.forEach(k => localStorage.removeItem(k));
+    renderBackupList(); showAlert('success','All backups cleared.');
+}
+
+function downloadBackup(key) {
+    let b; try { b = JSON.parse(localStorage.getItem(key)); } catch(e) { return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(b,null,2)], {type:'application/json'}));
+    a.download = `cheque_backup_${(b.label||'backup').replace(/\s+/g,'_')}_${new Date(b.timestamp).toISOString().split('T')[0]}.json`;
+    a.click();
+}
+
+function exportBackupJSON() {
+    if (!registers.length) { showAlert('warning','No data to export.'); return; }
+    const label = document.getElementById('backupLabel').value.trim() || 'Export';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({label, timestamp:new Date().toISOString(), records:registers.length, data:registers, bankUTRs},null,2)],{type:'application/json'}));
+    a.download = `cheque_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click(); showAlert('success','JSON backup exported.');
+}
+
+function importBackupJSON(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const b = JSON.parse(e.target.result);
+            if (!b.data || !Array.isArray(b.data)) { showAlert('error','Invalid backup format.'); return; }
+            restoreTargetKey = '__fromFile__';
+            localStorage.setItem('__fromFile__', JSON.stringify(b));
+            openRestoreModal('__fromFile__');
+        } catch(err) { showAlert('error','Invalid file: ' + err.message); }
+    };
+    reader.readAsText(file);
+}
+
+// ===================== START =====================
+init();
+</script>
+</body>
+</html>
